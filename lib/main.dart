@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async'; // Import for Timer
 import 'package:flutter/services.dart'; // Import for window size
 import 'package:audioplayers/audioplayers.dart'; // Import the audioplayers package
+import 'package:shared_preferences/shared_preferences.dart'; // Import for local storage
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,6 +46,9 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
   bool _isFinished = false; // Track if the timer has finished
   Timer? _timer; // Timer variable
   final AudioPlayer _audioPlayer = AudioPlayer(); // Create an AudioPlayer instance
+  List<TimerData> _savedTimers = []; // List to store saved timer durations
+  String _timerName = ''; // Variable to store the timer name
+  String _currentTimerName = ''; // Variable to store the currently loaded timer name
 
   // Gradient colors
   final List<Color> _gradientColors = [
@@ -148,6 +152,126 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
     });
   }
 
+  void _saveTimer(String name, int duration) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _savedTimers.add(TimerData(name, duration)); // Store TimerData object
+    await prefs.setStringList('savedTimers', _savedTimers.map((e) => e.toString()).toList());
+  }
+
+  void _loadSavedTimers() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? timers = prefs.getStringList('savedTimers');
+    if (timers != null) {
+      _savedTimers = timers.map((e) => TimerData.fromString(e)).toList(); // Load TimerData objects
+    }
+  }
+
+  void _showAddTimerDialog() {
+    String durationInput = ''; // Variable to store the duration input
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Add Timer'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                decoration: InputDecoration(labelText: 'Timer Name'),
+                onChanged: (value) {
+                  setState(() {
+                    _timerName = value; // Update timer name
+                  });
+                },
+              ),
+              TextField(
+                decoration: InputDecoration(labelText: 'Duration (in minutes)'), // Change label to minutes
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  durationInput = value; // Capture the duration input
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                // Save the timer with the name and duration
+                if (_timerName.isNotEmpty && durationInput.isNotEmpty) {
+                  int durationInMinutes = int.parse(durationInput); // Parse the duration input
+                  int durationInSeconds = durationInMinutes * 60; // Convert minutes to seconds
+                  _saveTimer(_timerName, durationInSeconds); // Save the timer with name
+                  Navigator.of(context).pop(); // Close the dialog
+                }
+              },
+              child: Text('Save'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showSavedTimers() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Saved Timers'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: _savedTimers.map((timerData) {
+                int durationInMinutes = timerData.duration ~/ 60; // Convert seconds to minutes for display
+                return ListTile(
+                  title: Text('${timerData.name}: $durationInMinutes minutes'), // Display name and duration
+                  onTap: () {
+                    // Start the timer with the selected duration
+                    setState(() {
+                      _remainingTime = timerData.duration; // Set remaining time to selected duration
+                      _initialTime = timerData.duration; // Update initial time
+                      _currentTimerName = timerData.name; // Set the current timer name
+                      _isRunning = false; // Ensure timer is not running
+                      _isFinished = false; // Reset finished state
+                    });
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                );
+              }).toList(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text('Close'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+                _showAddTimerDialog(); // Show dialog to add a new timer
+              },
+              child: Text('Add Timer'), // Button to add a new timer
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedTimers(); // Load saved timers when the widget is initialized
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -177,6 +301,12 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
                   : Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
+                        // Display the current timer name if available
+                        if (_currentTimerName.isNotEmpty) 
+                          Text(
+                            _currentTimerName,
+                            style: TextStyle(color: Colors.black, fontSize: 24), // Style for the timer name
+                          ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -213,21 +343,49 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
                       ],
                     ),
             ),
-            Positioned( // Position the reset button in the top right corner
-              top: 20,
-              right: 20,
-              child: ElevatedButton(
-                onPressed: _resetTimer,
-                child: Icon(Icons.refresh, color: Colors.red), // Set icon color to red
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white, // Set background to white
-                  shape: CircleBorder(), // Optional: make the button circular
-                ),
-              ),
-            ),
           ],
         ),
       ),
+      floatingActionButton: Row( // Add a row for the buttons
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          ElevatedButton(
+            onPressed: _showSavedTimers, // Show saved timers
+            child: Icon(Icons.library_books, color: Colors.blue), // Icon for library
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white, // Set background to white
+              shape: CircleBorder(), // Optional: make the button circular
+            ),
+          ),
+          SizedBox(width: 10), // Add some space between buttons
+          ElevatedButton(
+            onPressed: _resetTimer,
+            child: Icon(Icons.refresh, color: Colors.red), // Set icon color to red
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white, // Set background to white
+              shape: CircleBorder(), // Optional: make the button circular
+            ),
+          ),
+        ],
+      ),
     );
+  }
+}
+
+class TimerData {
+  String name;
+  int duration; // Duration in seconds
+
+  TimerData(this.name, this.duration);
+
+  // Convert TimerData to a string for storage
+  String toString() {
+    return '$name:$duration'; // Format: name:duration
+  }
+
+  // Create TimerData from a string
+  static TimerData fromString(String str) {
+    final parts = str.split(':');
+    return TimerData(parts[0], int.parse(parts[1]));
   }
 }
