@@ -3,19 +3,33 @@ import 'dart:async'; // Import for Timer
 import 'package:flutter/services.dart'; // Import for window size
 import 'package:audioplayers/audioplayers.dart'; // Import the audioplayers package
 import 'package:shared_preferences/shared_preferences.dart'; // Import for local storage
+import 'dart:io'; 
+import 'package:window_manager/window_manager.dart';
+
+const String appVersion = '0.0.1'; // Store the application version
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   // Set the window size to be square (e.g., 600x600)
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
   setWindowSize(600, 600);
+  setWindowIcon(); // Set the window icon
   runApp(MyApp());
 }
 
-void setWindowSize(double width, double height) {
-  // This function sets the window size for desktop applications to 600x600 pixels.
-  // This implementation is specific for desktop platforms.
-  // For Linux, you might need to use a specific library or method to set the window size.
+void setWindowSize(double width, double height) async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await windowManager.ensureInitialized();
+  if ( Platform.isWindows || Platform.isLinux || Platform.isMacOS ) {
+    WindowManager.instance.setMinimumSize(Size(width, height));
+    WindowManager.instance.setMaximumSize(Size(width, height));
+  }
+}
+
+void setWindowIcon() async {
+  await windowManager.ensureInitialized();
+  // Load the icon from assets
+  await windowManager.setIcon('assets/logo.png'); // Set the application logo
 }
 
 class MyApp extends StatelessWidget {
@@ -292,8 +306,8 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          "You took your time",
-                          style: TextStyle(color: Colors.green, fontSize: 36),
+                          "you_took_your_time",
+                          style: TextStyle(color: Colors.black, fontSize: 100),
                         ),
                         SizedBox(height: 20),
                       ],
@@ -343,6 +357,14 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
                       ],
                     ),
             ),
+            Positioned(
+              left: 16,
+              bottom: 16,
+              child: Text(
+                '$appVersion',
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
           ],
         ),
       ),
@@ -351,7 +373,7 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
         children: [
           ElevatedButton(
             onPressed: _showSavedTimers, // Show saved timers
-            child: Icon(Icons.library_books, color: Colors.blue), // Icon for library
+            child: Icon(Icons.library_books, color: Colors.black), // Icon for library
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white, // Set background to white
               shape: CircleBorder(), // Optional: make the button circular
@@ -360,7 +382,7 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
           SizedBox(width: 10), // Add some space between buttons
           ElevatedButton(
             onPressed: _resetTimer,
-            child: Icon(Icons.refresh, color: Colors.red), // Set icon color to red
+            child: Icon(Icons.refresh, color: Colors.black), // Set icon color to red
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white, // Set background to white
               shape: CircleBorder(), // Optional: make the button circular

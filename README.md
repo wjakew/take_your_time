@@ -1,7 +1,10 @@
 # take_your_time
 
+![logo](assets/logo.png)
+
 A simple Pomodoro Timer application built with Flutter. This app helps you manage your time effectively using the Pomodoro technique, allowing you to focus on tasks for a set period followed by short breaks.
 
+![screenshot](readme_resources/screenshot1.png)
 ## Features
 
 - **Countdown Timer**: Set a timer for 25 minutes by default, with the ability to add or subtract minutes.
