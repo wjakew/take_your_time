@@ -8,6 +8,7 @@ import 'package:window_manager/window_manager.dart';
 
 const String appVersion = '0.0.1'; // Store the application version
 
+// Main function
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   // Set the window size to be square (e.g., 600x600)
@@ -17,6 +18,7 @@ void main() {
   runApp(MyApp());
 }
 
+// Set the window size to be square (e.g., 600x600)
 void setWindowSize(double width, double height) async{
   WidgetsFlutterBinding.ensureInitialized();
   await windowManager.ensureInitialized();
@@ -26,12 +28,14 @@ void setWindowSize(double width, double height) async{
   }
 }
 
+// Set the window icon
 void setWindowIcon() async {
   await windowManager.ensureInitialized();
   // Load the icon from assets
   await windowManager.setIcon('assets/logo.png'); // Set the application logo
 }
 
+// Main app class
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -48,11 +52,13 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// Pomodoro timer class
 class PomodoroTimer extends StatefulWidget {
   @override
   _PomodoroTimerState createState() => _PomodoroTimerState();
 }
 
+// Pomodoro timer state class
 class _PomodoroTimerState extends State<PomodoroTimer> {
   int _remainingTime = 1500; // Remaining time in seconds (25 minutes)
   int _initialTime = 1500; // Store the initial timer value
@@ -101,6 +107,7 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
     }
   }
 
+  // Reset the timer
   void _resetTimer() {
     setState(() {
       _remainingTime = _initialTime; // Reset remaining time to the saved initial value
@@ -111,6 +118,7 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
     _timer?.cancel(); // Cancel the timer
   }
 
+  // Add a minute to the timer
   void _addMinute() {
     setState(() {
       _initialTime += 60; // Update the initial time by adding 1 minute
@@ -119,6 +127,7 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
     });
   }
 
+  // Subtract a minute from the timer
   void _subtractMinute() {
     setState(() {
       if (_remainingTime > 60) {
@@ -128,6 +137,7 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
     });
   }
 
+  // Start the gradient animation
   void _startGradientAnimation() {
     // Start a periodic timer to update the animation value
     Timer.periodic(Duration(milliseconds: 100), (timer) {
@@ -151,6 +161,7 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
     });
   }
 
+  // Stop the gradient animation
   void _stopGradientAnimation() {
     // Reset the animation value when stopping
     setState(() {
@@ -159,6 +170,7 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
     });
   }
 
+  // Play the finish sound
   void _playFinishSound() async {
     await _audioPlayer.play(AssetSource('mixkit-software-interface-start-2574.mp3')); // Play the finish sound
     setState(() {
@@ -166,12 +178,14 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
     });
   }
 
+  // Save the timer
   void _saveTimer(String name, int duration) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     _savedTimers.add(TimerData(name, duration)); // Store TimerData object
     await prefs.setStringList('savedTimers', _savedTimers.map((e) => e.toString()).toList());
   }
 
+  // Load the saved timers
   void _loadSavedTimers() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String>? timers = prefs.getStringList('savedTimers');
@@ -180,6 +194,7 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
     }
   }
 
+  // Show the add timer dialog
   void _showAddTimerDialog() {
     String durationInput = ''; // Variable to store the duration input
 
@@ -233,6 +248,7 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
     );
   }
 
+  // Show the saved timers dialog
   void _showSavedTimers() {
     showDialog(
       context: context,
@@ -280,12 +296,14 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
     );
   }
 
+  // Initialize the state
   @override
   void initState() {
     super.initState();
     _loadSavedTimers(); // Load saved timers when the widget is initialized
   }
 
+  // Build the widget
   @override
   Widget build(BuildContext context) {
     return Scaffold(
