@@ -186,7 +186,7 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
                             ),
                             Text(
                               '${(_remainingTime ~/ 60).toString().padLeft(2, '0')}:${(_remainingTime % 60).toString().padLeft(2, '0')}',
-                              style: TextStyle(color: Colors.black, fontSize: 48),
+                              style: TextStyle(color: Colors.black, fontSize: 96),
                             ),
                             IconButton(
                               icon: Icon(Icons.add, color: Colors.black),
@@ -200,10 +200,11 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
                           children: [
                             ElevatedButton(
                               onPressed: _startPauseTimer,
-                              child: Text(_isRunning ? 'Pause Timer' : 'Start Timer'),
+                              child: Icon(_isRunning ? Icons.pause : Icons.play_arrow, color: Colors.white), // Use play/pause icons
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                                foregroundColor: _isRunning ? Colors.black : Colors.white, // Text color based on state
+                                backgroundColor: Colors.green, // Set button color to green
+                                shape: CircleBorder(), // Make the button circular
+                                padding: EdgeInsets.all(40), // Set size to be twice as big
                               ),
                             ),
                             SizedBox(width: 10), // Add some space between buttons
