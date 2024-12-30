@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async'; // Import for Timer
 import 'package:flutter/services.dart'; // Import for window size
+import 'package:audioplayers/audioplayers.dart'; // Import the audioplayers package
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,6 +44,7 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
   bool _isRunning = false;
   bool _isFinished = false; // Track if the timer has finished
   Timer? _timer; // Timer variable
+  final AudioPlayer _audioPlayer = AudioPlayer(); // Create an AudioPlayer instance
 
   // Gradient colors
   final List<Color> _gradientColors = [
@@ -73,11 +75,7 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
           });
         } else {
           _timer?.cancel(); // Cancel the timer
-          setState(() {
-            _isRunning = false;
-            _isFinished = true; // Set finished state
-            _stopGradientAnimation(); // Stop the animation when finished
-          });
+          _playFinishSound(); // Play sound when timer finishes
         }
       });
     } else {
@@ -140,6 +138,13 @@ class _PomodoroTimerState extends State<PomodoroTimer> {
     setState(() {
       _animationValue = 0.0;
       _isAnimatingForward = true; // Reset direction
+    });
+  }
+
+  void _playFinishSound() async {
+    await _audioPlayer.play(AssetSource('mixkit-software-interface-start-2574.mp3')); // Play the finish sound
+    setState(() {
+      _isFinished = true; // Set finished state to true
     });
   }
 
